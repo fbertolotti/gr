@@ -1,89 +1,99 @@
-'use strict';
+"use strict";
 
-const run = require('../lib/run');
+const run = require("../lib/run");
 
-const git = require('simple-git');
+const git = require("simple-git");
 
-const groupBy = require('lodash.groupby');
+const groupBy = require("lodash.groupby");
 
-const async = require('async');
-const path = require('path');
-
+const async = require("async");
+const path = require("path");
 
 function getProjectName(path) {
-  const split = path.split('/');
-  return split[split.length - 1]
+  const split = path.split("/");
+  return split[split.length - 1];
 }
 
 function exportAsJson(req, res, next) {
   const exportPath = process.argv[3];
   if (!exportPath) {
-    return console.log('Please supply a file path of where you want to start exporting from')
+    return console.log(
+      "Please supply a file path of where you want to start exporting from"
+    );
   }
   const absoluteExportPath = path.resolve(exportPath);
 
   let exportedConfig = {
-    repos: []
+    repos: [],
   };
 
   const getRelativeRepoPath = function (projectName, path) {
-    const exportPathRemoved = path.substring(absoluteExportPath.length, path.length);
-    const relativePath = exportPathRemoved.substring(1, exportPathRemoved.length - projectName.length - 1);
+    const exportPathRemoved = path.substring(
+      absoluteExportPath.length,
+      path.length
+    );
+    const relativePath = exportPathRemoved.substring(
+      1,
+      exportPathRemoved.length - projectName.length - 1
+    );
 
-    return relativePath === '/' ? '.' : relativePath;
+    return relativePath === "/" ? "." : relativePath;
   };
 
   const getRepoDetails = function (path, tag, callback) {
-    git(path).listRemote(['--get-url'], function (err, gitUrl) {
+    git(path).listRemote(["--get-url"], function (err, gitUrl) {
       if (err) {
-        console.log('Error with: ' + path);
-        return callback(err)
+        console.log("Error with: " + path);
+        return callback(err);
       }
       const projectName = getProjectName(path);
       const repo = {
         name: projectName,
         url: gitUrl.trim(),
         tag: tag,
-        path: getRelativeRepoPath(projectName, path)
+        path: getRelativeRepoPath(projectName, path),
       };
       exportedConfig.repos.push(repo);
-      callback()
+      callback();
     });
   };
 
   const tags = req.config.items.tags;
 
   if (!tags) {
-    console.log('Cannot export if there is no config');
-    return req.exit()
+    console.log("Cannot export if there is no config");
+    return req.exit();
   }
 
   const tagKeys = Object.keys(tags);
   const filteredTags = {};
 
   tagKeys.forEach((tagName) => {
-    filteredTags[tagName] = tags[tagName].filter((path) => path.indexOf(absoluteExportPath) > -1);
+    filteredTags[tagName] = tags[tagName].filter(
+      (path) => path.indexOf(absoluteExportPath) > -1
+    );
   });
-
 
   let requests = [];
   tagKeys.forEach(function (tagName) {
-    requests = requests.concat(filteredTags[tagName].map((path) => {
-      return function (callback) {
-        getRepoDetails(path, tagName, callback);
-      };
-    }));
+    requests = requests.concat(
+      filteredTags[tagName].map((path) => {
+        return function (callback) {
+          getRepoDetails(path, tagName, callback);
+        };
+      })
+    );
   });
   async.parallel(requests, (err, result) => {
     if (err) {
-      console.log('Error exporting config');
+      console.log("Error exporting config");
       return req.exit();
     }
-    const groupedConfig = groupBy(exportedConfig.repos, 'url');
+    const groupedConfig = groupBy(exportedConfig.repos, "url");
 
     const groupedConfigKeys = Object.keys(groupedConfig);
     let newConfig = {
-      repos: []
+      repos: [],
     };
 
     groupedConfigKeys.forEach((key) => {
@@ -94,9 +104,9 @@ function exportAsJson(req, res, next) {
         name: repos[0].name,
         url: key,
         tags: tags,
-        path: repos[0].path
+        path: repos[0].path,
       };
-      newConfig.repos.push(newRepo)
+      newConfig.repos.push(newRepo);
     });
 
     console.log(JSON.stringify(newConfig));
@@ -106,6 +116,5 @@ function exportAsJson(req, res, next) {
 }
 
 module.exports = {
-  exportAsJson: exportAsJson
-
+  exportAsJson: exportAsJson,
 };

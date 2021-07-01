@@ -1,8 +1,8 @@
-var fs = require('fs'),
-    homePath = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'],
-    confFile = homePath + '/.grconfig.json';
+var fs = require("fs"),
+  homePath = process.env[process.platform == "win32" ? "USERPROFILE" : "HOME"],
+  confFile = homePath + "/.grconfig.json";
 
-module.exports = function() {
+module.exports = function () {
   var backup;
 
   // backup

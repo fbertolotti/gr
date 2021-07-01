@@ -1,11 +1,10 @@
-var log = require('minilog')('gr-run'),
-    path = require('path'),
-    style = require('../lib/style.js'),
-    run = require('../lib/run.js'),
-    commandRequirements = require('../lib/command-requirements.js');
+var log = require("minilog")("gr-run"),
+  path = require("path"),
+  style = require("../lib/style.js"),
+  run = require("../lib/run.js"),
+  commandRequirements = require("../lib/command-requirements.js");
 
-module.exports = function(req, res, next) {
-
+module.exports = function (req, res, next) {
   // if argv is empty, skip
   if (req.argv.length === 0) {
     return next();
@@ -13,13 +12,13 @@ module.exports = function(req, res, next) {
 
   // assume that the rest of the argvs are the command
   var task = req.argv,
-      dirname = path.dirname(req.path).replace(req.gr.homePath, '~') + path.sep;
+    dirname = path.dirname(req.path).replace(req.gr.homePath, "~") + path.sep;
 
-  if (task[0] == '--') {
+  if (task[0] == "--") {
     task.shift();
   }
 
-  if (task[0] == 'git') {
+  if (task[0] == "git") {
     // for "git" tasks, add the color option
     // task.splice(1, 0, '-c color.ui=always');
     // disabled for now, as it causes some issues with commands, maybe need to
@@ -31,11 +30,12 @@ module.exports = function(req, res, next) {
     }
   }
 
-  if (req.format == 'human') {
+  if (req.format == "human") {
     console.log(
-      style('\nin ' + dirname, 'gray') +
-      style(path.basename(req.path), 'white') + '\n'
-      );
+      style("\nin " + dirname, "gray") +
+        style(path.basename(req.path), "white") +
+        "\n"
+    );
   }
 
   // always directly pass the full array,
