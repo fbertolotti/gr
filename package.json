@@ -35,7 +35,8 @@
   "devDependencies": {
     "file-fixture": "0.0.2",
     "jshint": "^2.13.0",
-    "mocha": "^9.0.0"
+    "mocha": "^9.0.0",
+    "prettier": "^2.3.2"
   },
   "jshintConfig": {
     "-W018": true,
